@@ -1,18 +1,18 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="YOLO9",
+    name="yolov9",
     version="0.1.0",
     author="Wong Kin Yiu",
     author_email="", 
     description="A YOLO-based object detection implementation",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dylandru/yolov9", 
-    packages=find_packages(['yolo9', 'yolo9.*']),
+    url="https://github.com/dylandru/yolov9",
+    packages=find_namespace_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPL-3.0 License",

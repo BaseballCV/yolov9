@@ -12,7 +12,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/dylandru/yolov9", 
-    packages=find_packages(),
+    packages=find_packages(['yolo9', 'yolo9.*']),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPL-3.0 License",

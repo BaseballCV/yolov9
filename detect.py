@@ -81,6 +81,8 @@ def run(
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
     vid_path, vid_writer = [None] * bs, [None] * bs
 
+    all_predictions = []  # Store all predictions
+    
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
@@ -101,8 +103,20 @@ def run(
         with dt[2]:
             pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
 
-        # Second-stage classifier (optional)
-        # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
+        # Store predictions
+        for i, det in enumerate(pred):
+            if len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0s.shape).round()
+                
+                # Store results for this image
+                results = {
+                    'path': str(path),
+                    'xyxy': det[:, :4].cpu().numpy(),  # x1, y1, x2, y2
+                    'confidence': det[:, 4].cpu().numpy(),
+                    'class_id': det[:, 5].cpu().numpy()
+                }
+                all_predictions.append(results)
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
@@ -184,6 +198,8 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
+
+    return all_predictions
 
 
 def parse_opt():

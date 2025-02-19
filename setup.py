@@ -18,7 +18,8 @@ setup(
         'yolov9': [
             'data/*.yaml',
             'data/hyps/*.yaml',
-            '*.yaml'
+            '*.yaml',
+            'models/detect/*.yaml'
         ]
     },
     classifiers=[

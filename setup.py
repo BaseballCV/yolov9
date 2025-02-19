@@ -13,6 +13,14 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/dylandru/yolov9",
     packages=find_packages(),
+    include_package_data=True,
+    package_data={
+        'yolov9': [
+            'data/*.yaml',
+            'data/hyps/*.yaml',
+            '*.yaml'
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -39,6 +47,5 @@ setup(
         "seaborn>=0.11.0",
         "albumentations>=1.0.3",
         "pycocotools>=2.0"
-    ],
-    include_package_data=True,
+    ]
 )

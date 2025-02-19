@@ -7,7 +7,7 @@ import time
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-
+from pkg_resources import resource_filename
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -426,15 +426,20 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     torch.cuda.empty_cache()
     return results
 
+def get_pkg_file(path):
+    """Get file path from package data"""
+    return resource_filename('yolov9', path)
+
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
     # parser.add_argument('--weights', type=str, default=ROOT / 'yolo.pt', help='initial weights path')
     # parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
     parser.add_argument('--weights', type=str, default='', help='initial weights path')
-    parser.add_argument('--cfg', type=str, default='yolo.yaml', help='model.yaml path')
-    parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='dataset.yaml path')
-    parser.add_argument('--hyp', type=str, default=ROOT / 'data/hyps/hyp.scratch-low.yaml', help='hyperparameters path')
+    parser.add_argument('--cfg', type=str, default=get_pkg_file('yolo.yaml'), help='model.yaml path')
+    parser.add_argument('--data', type=str, default=get_pkg_file('data/coco128.yaml'), help='dataset.yaml path')
+    parser.add_argument('--hyp', type=str, default=get_pkg_file('data/hyps/hyp.scratch-low.yaml'), 
+                       help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=100, help='total training epochs')
     parser.add_argument('--batch-size', type=int, default=16, help='total batch size for all GPUs, -1 for autobatch')
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=640, help='train, val image size (pixels)')

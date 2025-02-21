@@ -50,6 +50,7 @@ RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 GIT_INFO = None#check_git_info()
 
+OUTPUT_DIR = Path.cwd()  
 
 def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictionary
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
@@ -437,8 +438,8 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--weights', type=str, default=ROOT / 'yolo.pt', help='initial weights path')
-    # parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
+    parser.add_argument('--save-dir', type=str, default=str(OUTPUT_DIR / 'runs/train'), 
+                       help='save to project/name')
     parser.add_argument('--weights', type=str, default='', help='initial weights path')
     parser.add_argument('--cfg', type=str, default='yolo.yaml', help='model.yaml path')
     parser.add_argument('--data', type=str, default=ROOT / 'data/coco.yaml', help='dataset.yaml path')

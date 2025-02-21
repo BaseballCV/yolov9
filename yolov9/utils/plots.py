@@ -79,23 +79,29 @@ class Annotator:
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
 
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
+        if isinstance(self.im, Image.Image):
+            # Convert PIL Image to writable numpy array
+            self.im = np.asarray(self.im).copy()  # .copy() makes it writable
+        
+        # Get text size
         if self.pil or not is_ascii(label):
             try:
+                # For newer Pillow versions
                 bbox = self.font.getbbox(label)
                 w = bbox[2] - bbox[0]
                 h = bbox[3] - bbox[1]
             except AttributeError:
-                try:
-                    w, h = self.font.getsize(label)
-                except AttributeError:
-                    w = sum(self.font.getlength(c) for c in label)
-                    h = self.font.size
-        else:
-            w = self.font.getlength(label)  # text width
-            h = self.font.size  # text height
+                w = sum(self.font.getlength(c) for c in label)
+                h = self.font.size
 
+        if not self.im.flags.writeable:
+            self.im = np.ascontiguousarray(self.im)
+
+        # Draw box
         p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
         cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+        
+        # Draw label
         if label:
             tf = max(self.lw - 1, 1)  # font thickness
             w = w + 1  # add padding
@@ -238,15 +244,13 @@ def output_to_target(output, max_det=300):
 
 
 @threaded
-def plot_images(images, targets, paths=None, fname='images.jpg', names=None):
+def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max_size=1920, max_subplots=16):
     # Plot image grid with labels
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
     if isinstance(targets, torch.Tensor):
         targets = targets.cpu().numpy()
 
-    max_size = 1920  # max image size
-    max_subplots = 16  # max image subplots, i.e. 4x4
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -299,7 +303,14 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None):
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = f'{cls}' if labels else f'{cls} {conf[j]:.1f}'
                     annotator.box_label(box, label, color=color)
-    annotator.im.save(fname)  # save
+
+    if isinstance(annotator.im, np.ndarray):
+        im = Image.fromarray(annotator.im)
+        im.save(fname)  # save
+    else:
+        annotator.im.save(fname)  # save if it's already a PIL Image
+    
+    return mosaic
 
 
 def plot_lr_scheduler(optimizer, scheduler, epochs=300, save_dir=''):

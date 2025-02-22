@@ -80,19 +80,21 @@ class Annotator:
 
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
         if isinstance(self.im, Image.Image):
-            # Convert PIL Image to writable numpy array
             self.im = np.asarray(self.im).copy()  # .copy() makes it writable
         
-        # Get text size
-        if self.pil or not is_ascii(label):
-            try:
-                # For newer Pillow versions
-                bbox = self.font.getbbox(label)
-                w = bbox[2] - bbox[0]
-                h = bbox[3] - bbox[1]
-            except AttributeError:
-                w = sum(self.font.getlength(c) for c in label)
-                h = self.font.size
+        w = h = 0
+        if label: 
+            if self.pil or not is_ascii(label):
+                try:
+                    bbox = self.font.getbbox(label)
+                    w = bbox[2] - bbox[0]
+                    h = bbox[3] - bbox[1]
+                except AttributeError:
+                    w = sum(self.font.getlength(c) for c in label)
+                    h = self.font.size
+            else:
+                w = len(label) * 10  # approximate width
+                h = 20  # approximate height
 
         if not self.im.flags.writeable:
             self.im = np.ascontiguousarray(self.im)

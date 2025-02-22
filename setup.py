@@ -19,7 +19,9 @@ setup(
             'data/*.yaml',
             'data/hyps/*.yaml',
             '*.yaml',
-            'models/detect/*.yaml'
+            'models/detect/*.yaml',
+            'models/detect/*.py',
+            'scripts/*.sh'
         ]
     },
     classifiers=[

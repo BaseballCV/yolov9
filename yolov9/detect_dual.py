@@ -3,6 +3,8 @@ import os
 import platform
 import sys
 from pathlib import Path
+import uuid
+from typing import Dict, List
 
 import torch
 
@@ -49,7 +51,9 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         vid_stride=1,  # video frame-rate stride
-):
+) -> Dict[str, List[Dict]]:
+    results = {"predictions": []}
+    
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -101,7 +105,6 @@ def run(
         # NMS
         with dt[2]:
             pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
-
         # Second-stage classifier (optional)
         # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
 
@@ -145,6 +148,21 @@ def run(
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
+                    x1, y1, x2, y2 = [int(x) for x in xyxy]
+                    width = x2 - x1
+                    height = y2 - y1
+                    
+                    results["predictions"].append({
+                        "x": x1,
+                        "y": y1,
+                        "width": width,
+                        "height": height,
+                        "confidence": float(conf),
+                        "class": names[int(cls)],
+                        "class_id": int(cls),
+                        "detection_id": str(uuid.uuid4())
+                    })
+
             # Stream results
             im0 = annotator.result()
             if view_img:
@@ -185,6 +203,8 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
+
+    return results
 
 
 def parse_opt():

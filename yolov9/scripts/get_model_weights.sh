@@ -11,7 +11,12 @@ fi
 
 model_name=$1
 base_url="https://github.com/WongKinYiu/yolov9/releases/download/v0.1"
-weights_dir="weights"
+
+if [ -n "$2" ]; then
+    weights_dir="$2/weights"
+else
+    weights_dir="weights"
+fi
 
 mkdir -p $weights_dir
 
